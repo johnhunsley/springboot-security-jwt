@@ -12,14 +12,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import com.svlada.entity.User;
 import com.svlada.security.model.UserContext;
-import com.svlada.user.service.DatabaseUserService;
 
 /**
  * 
@@ -30,11 +29,11 @@ import com.svlada.user.service.DatabaseUserService;
 @Component
 public class AjaxAuthenticationProvider implements AuthenticationProvider {
     private final BCryptPasswordEncoder encoder;
-    private final DatabaseUserService userService;
+    private final UserDetailsService userDetailsService;
 
     @Autowired
-    public AjaxAuthenticationProvider(final DatabaseUserService userService, final BCryptPasswordEncoder encoder) {
-        this.userService = userService;
+    public AjaxAuthenticationProvider(final UserDetailsService userDetailsService, final BCryptPasswordEncoder encoder) {
+        this.userDetailsService = userDetailsService;
         this.encoder = encoder;
     }
 
@@ -45,16 +44,18 @@ public class AjaxAuthenticationProvider implements AuthenticationProvider {
         String username = (String) authentication.getPrincipal();
         String password = (String) authentication.getCredentials();
 
-        User user = userService.getByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        UserDetails user = userDetailsService.loadUserByUsername(username);
+
         
         if (!encoder.matches(password, user.getPassword())) {
             throw new BadCredentialsException("Authentication Failed. Username or Password not valid.");
         }
 
-        if (user.getRoles() == null) throw new InsufficientAuthenticationException("User has no roles assigned");
+        if (user.getAuthorities() == null) throw new InsufficientAuthenticationException("User has no roles assigned");
         
-        List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(authority -> new SimpleGrantedAuthority(authority.getRole().authority()))
+        List<GrantedAuthority> authorities = user.getAuthorities().stream()
+                .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
                 .collect(Collectors.toList());
         
         UserContext userContext = UserContext.create(user.getUsername(), authorities);
