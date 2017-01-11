@@ -36,8 +36,7 @@ public class JwtTokenFactory {
     /**
      * Factory method for issuing new JWT Tokens.
      * 
-     * @param username
-     * @param roles
+     * @param userContext
      * @return
      */
     public AccessJwtToken createAccessJwtToken(UserContext userContext) {
