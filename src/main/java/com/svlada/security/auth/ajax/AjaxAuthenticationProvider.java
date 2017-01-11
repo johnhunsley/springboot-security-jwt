@@ -3,6 +3,7 @@ package com.svlada.security.auth.ajax;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.svlada.security.crypto.password.StandardPasswordBase64Encoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,6 +16,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.StandardPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -28,11 +31,11 @@ import com.svlada.security.model.UserContext;
  */
 @Component
 public class AjaxAuthenticationProvider implements AuthenticationProvider {
-    private final BCryptPasswordEncoder encoder;
+    private final PasswordEncoder encoder;
     private final UserDetailsService userDetailsService;
 
     @Autowired
-    public AjaxAuthenticationProvider(final UserDetailsService userDetailsService, final BCryptPasswordEncoder encoder) {
+    public AjaxAuthenticationProvider(final UserDetailsService userDetailsService, final StandardPasswordBase64Encoder encoder) {
         this.userDetailsService = userDetailsService;
         this.encoder = encoder;
     }
