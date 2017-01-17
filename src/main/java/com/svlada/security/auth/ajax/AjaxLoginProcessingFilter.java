@@ -49,18 +49,22 @@ public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingF
         this.objectMapper = mapper;
     }
 
+    private HttpServletResponse setCORSHeaders(HttpServletResponse response) {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Max-Age", "3600");
+        response.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Cache-Control, X-Authorization");
+        return response;
+    }
+
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest)req;
 
         if(request.getMethod().equals(HttpMethod.OPTIONS.name())) {
             logger.debug("request is preflight OPTIONS");
-            HttpServletResponse response = (HttpServletResponse)res;
-            response.setHeader("Access-Control-Allow-Origin", "*");
-            response.addHeader("Access-Control-Allow-Credentials", "true");
-            response.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS, DELETE");
-            response.setHeader("Access-Control-Max-Age", "3600");
-            response.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Cache-Control, X-Authorization");
+            setCORSHeaders((HttpServletResponse)res);
             return;
         }
 
@@ -91,24 +95,13 @@ public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingF
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
             Authentication authResult) throws IOException, ServletException {
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        response.addHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS, DELETE");
-        response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Cache-Control, X-Authorization");
-
-        successHandler.onAuthenticationSuccess(request, response, authResult);
+        successHandler.onAuthenticationSuccess(request, setCORSHeaders(response), authResult);
     }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException failed) throws IOException, ServletException {
         SecurityContextHolder.clearContext();
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        response.addHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS, DELETE");
-        response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Cache-Control, X-Authorization");
-        failureHandler.onAuthenticationFailure(request, response, failed);
+        failureHandler.onAuthenticationFailure(request, setCORSHeaders(response), failed);
     }
 }
